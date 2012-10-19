@@ -5,6 +5,10 @@
 
 #include "debounce.h"
 
+#define SEC 0
+#define MIN 1
+#define HUR 2
+
 #define STATE_CLOCK 0
 #define STATE_SET_CLOCK_HOUR 1
 #define STATE_SET_CLOCK_MIN 2
@@ -14,13 +18,14 @@ volatile uint8_t milli_flag = 0;
 
 void sec_timer(void);
 void millisec_timer( void );
-void display( uint8_t, uint8_t, uint8_t );
+void display( uint8_t * time, uint8_t disp_mask );
 
 int main( void )
 {
 	uint8_t button_state[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-	uint8_t sec = 0, min = 0, disp_flag = 0, mask_flag = 0, debounce_flag = 0;
+	uint8_t  disp_flag = 0, mask_flag = 0, debounce_flag = 0;
 	uint8_t state = 0, disp_mask = 0xFF, btn_hold_update_flag = 0;
+	uint8_t time[3] = { 0, 0, 0 };
 
         DDRB = 0xFF;
 	PORTB = 0xFF;
@@ -72,21 +77,21 @@ int main( void )
 		
 			if( state == STATE_CLOCK )
 			{
-				sec++;			
-				if( sec == 60 )
+				time[SEC]++;			
+				if( time[SEC] == 60 )
 				{
-					sec = 0;
-					min++;
+					time[SEC] = 0;
+					time[MIN]++;
 				}
 
-				if( min == 60 ) min = 0;
+				if( time[MIN] == 60 ) time[MIN] = 0;
 			}
 		}
 
 		if( disp_flag == 1 )
 		{
 			disp_flag = 0;
-			display( sec, min, disp_mask );
+			display( time, disp_mask );
 		}
 
 		if( debounce_flag == 10 )
@@ -116,8 +121,8 @@ int main( void )
 				//ADD
 				if( button_state[1] == PRESS )
 				{
-					min++;
-					if( min == 60 ) min = 0;
+					time[MIN]++;
+					if( time[MIN] == 60 ) time[MIN] = 0;
 					button_state[1] = UP;
 				}	
 				if( button_state[1] == HOLD )
@@ -125,16 +130,16 @@ int main( void )
 					if( btn_hold_update_flag == 100 )
 					{
 						btn_hold_update_flag = 0;
-						min++;
-						if( min == 60 ) min = 0;
+						time[MIN]++;
+						if( time[MIN] == 60 ) time[MIN] = 0;
 					}
 				}
 
 				//TAKE
 				if( button_state[2] == PRESS )
 				{
-					if( min == 0 ) min = 60;
-					min--;
+					if( time[MIN] == 0 ) time[MIN] = 60;
+					time[MIN]--;
 					button_state[2] = UP;
 				}				
 				if( button_state[2] == HOLD )
@@ -142,8 +147,8 @@ int main( void )
 					if( btn_hold_update_flag == 100 )
 					{
 						btn_hold_update_flag = 0;
-						if( min == 0 ) min = 60;
-						min--;
+						if( time[MIN] == 0 ) time[MIN] = 60;
+						time[MIN]--;
 					}
 				}
 				break;
@@ -157,8 +162,8 @@ int main( void )
 								//ADD
 				if( button_state[1] == PRESS )
 				{
-					sec++;
-					if( sec == 60 ) sec = 0;
+					time[SEC]++;
+					if( time[SEC] == 60 ) time[SEC] = 0;
 					button_state[1] = UP;
 				}	
 				if( button_state[1] == HOLD )
@@ -166,16 +171,16 @@ int main( void )
 					if( btn_hold_update_flag == 100 )
 					{
 						btn_hold_update_flag = 0;
-						sec++;
-						if( sec == 60 ) sec = 0;
+						time[SEC]++;
+						if( time[SEC] == 60 ) time[SEC] = 0;
 					}
 				}
 
 				//TAKE
 				if( button_state[2] == PRESS )
 				{
-					if( sec == 0 ) sec = 60;
-					sec--;
+					if( time[SEC] == 0 ) time[SEC] = 60;
+					time[SEC]--;
 					button_state[2] = UP;
 				}				
 				if( button_state[2] == HOLD )
@@ -183,8 +188,8 @@ int main( void )
 					if( btn_hold_update_flag == 100 )
 					{
 						btn_hold_update_flag = 0;
-						if( sec == 0 ) sec = 60;
-						sec--;
+						if( time[SEC] == 0 ) time[SEC] = 60;
+						time[SEC]--;
 					}
 				}
 
@@ -193,7 +198,7 @@ int main( void )
 	}
 }
 
-void display( uint8_t sec, uint8_t min, uint8_t disp_mask )
+void display( uint8_t * time, uint8_t disp_mask )
 {
 	const uint8_t seg[] = { 0x40, 0x79, 0x24, 0x30, 0x19, 0x12, 0x02, 0x78, 0x00, 0x18 };
 	static uint8_t cur_digit = 0;
@@ -203,17 +208,17 @@ void display( uint8_t sec, uint8_t min, uint8_t disp_mask )
 	switch( cur_digit )
 	{
 		case 0:
-			PORTD = (min>9)?seg[ (min/10) ]:seg[0];
+			PORTD = (time[MIN]>9)?seg[ (time[MIN]/10) ]:seg[0];
 			break;
 		case 1:
-			PORTD = (min>9)?seg[ (min%10) ]:seg[min];
+			PORTD = (time[MIN]>9)?seg[ (time[MIN]%10) ]:seg[time[MIN]];
 			break;
 
 		case 2:		
-			PORTD = (sec>9)?seg[ (sec/10) ]:seg[0];
+			PORTD = (time[SEC]>9)?seg[ (time[SEC]/10) ]:seg[0];
 			break;
 		case 3:
-			PORTD = (sec>9)?seg[ (sec%10) ]:seg[sec];
+			PORTD = (time[SEC]>9)?seg[ (time[SEC]%10) ]:seg[time[SEC]];
 			break;
 	}
 	PORTB = (1<<cur_digit) & disp_mask;
