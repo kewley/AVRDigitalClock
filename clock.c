@@ -99,104 +99,118 @@ int main( void )
 			debounce_flag = 0;
 			debounce( &button_state );
 		}
-			
-
-		switch( state )
+		
+		//HANDLE INPUT AND STATES
+		
+		//MODE BUTTON
+		if( button_state[0] == PRESS || button_state[0] == HOLD )
 		{
-			case STATE_CLOCK:
-				if( button_state[0] == HOLD )
-				{
-					state = STATE_SET_CLOCK_HOUR;
-					button_state[0] = UP;
-				}
-				break;
-
-			case STATE_SET_CLOCK_HOUR:
-				if( button_state[0] == PRESS || button_state[0] == HOLD )
-				{
+			switch(state)
+			{
+				case STATE_CLOCK:
+					if( button_state[0] == HOLD )
+					{
+						state = STATE_SET_CLOCK_HOUR;
+					}
+					break;
+				case STATE_SET_CLOCK_HOUR:
 					state = STATE_SET_CLOCK_MIN;
-					button_state[0] = UP;
-				}
+					break;
+				case STATE_SET_CLOCK_MIN:
+					state = STATE_CLOCK;
+					break;
+				
+			}
+			button_state[0] = UP;
+		}
 
-				//ADD
-				if( button_state[1] == PRESS )
-				{
+		//UP BUTTON
+		if( button_state[1] == PRESS )
+		{
+			switch( state )
+			{
+				case STATE_SET_CLOCK_HOUR:
 					time[MIN]++;
 					if( time[MIN] == 60 ) time[MIN] = 0;
-					button_state[1] = UP;
-				}	
-				if( button_state[1] == HOLD )
-				{
+					break;
+				case STATE_SET_CLOCK_MIN:
+					time[SEC]++;
+					if( time[SEC] == 60 ) time[SEC] = 0;
+					break;
+	
+
+			}
+			button_state[1] = UP;
+		}
+
+		if( button_state[1] == HOLD )
+		{
+			switch( state )
+			{
+				case STATE_SET_CLOCK_HOUR:
 					if( btn_hold_update_flag == 100 )
 					{
 						btn_hold_update_flag = 0;
 						time[MIN]++;
 						if( time[MIN] == 60 ) time[MIN] = 0;
 					}
-				}
-
-				//TAKE
-				if( button_state[2] == PRESS )
-				{
-					if( time[MIN] == 0 ) time[MIN] = 60;
-					time[MIN]--;
-					button_state[2] = UP;
-				}				
-				if( button_state[2] == HOLD )
-				{
-					if( btn_hold_update_flag == 100 )
-					{
-						btn_hold_update_flag = 0;
-						if( time[MIN] == 0 ) time[MIN] = 60;
-						time[MIN]--;
-					}
-				}
-				break;
-
-			case STATE_SET_CLOCK_MIN:
-				if( button_state[0] == PRESS || button_state[0] == HOLD )
-				{
-					state = STATE_CLOCK;
-					button_state[0] = UP;
-				}	
-								//ADD
-				if( button_state[1] == PRESS )
-				{
-					time[SEC]++;
-					if( time[SEC] == 60 ) time[SEC] = 0;
-					button_state[1] = UP;
-				}	
-				if( button_state[1] == HOLD )
-				{
+					break;
+				case STATE_SET_CLOCK_MIN:
 					if( btn_hold_update_flag == 100 )
 					{
 						btn_hold_update_flag = 0;
 						time[SEC]++;
 						if( time[SEC] == 60 ) time[SEC] = 0;
 					}
-				}
+					break;	
 
-				//TAKE
-				if( button_state[2] == PRESS )
-				{
+			}
+		}
+
+		//DOWN BUTTON
+		if( button_state[2] == PRESS )
+		{
+			switch( state )
+			{
+				case STATE_SET_CLOCK_HOUR:
+					if( time[MIN] == 0 ) time[MIN] = 60;
+					time[MIN]--;
+					break;
+				case STATE_SET_CLOCK_MIN:
 					if( time[SEC] == 0 ) time[SEC] = 60;
 					time[SEC]--;
-					button_state[2] = UP;
-				}				
-				if( button_state[2] == HOLD )
-				{
+					break;
+	
+
+			}
+			button_state[2] = UP;
+		}
+
+		if( button_state[2] == HOLD )
+		{
+			switch( state )
+			{
+				case STATE_SET_CLOCK_HOUR:
+					if( btn_hold_update_flag == 100 )
+					{
+						btn_hold_update_flag = 0;
+						if( time[MIN] == 0 ) time[MIN] = 60;
+						time[MIN]--;
+					}
+					break;
+				case STATE_SET_CLOCK_MIN:
 					if( btn_hold_update_flag == 100 )
 					{
 						btn_hold_update_flag = 0;
 						if( time[SEC] == 0 ) time[SEC] = 60;
 						time[SEC]--;
 					}
-				}
-
-				break;
+					break;	
+			}
 		}
 	}
 }
+
 
 void display( uint8_t * time, uint8_t disp_mask )
 {
