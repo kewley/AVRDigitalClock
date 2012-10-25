@@ -10,8 +10,8 @@
 #define HUR 2
 
 #define STATE_CLOCK 0
-#define STATE_SET_CLOCK_HOUR 1
-#define STATE_SET_CLOCK_MIN 2
+#define STATE_SET_CLOCK_MIN 1
+#define STATE_SET_CLOCK_SEC 2
 
 volatile uint8_t sec_flag = 0;
 volatile uint8_t milli_flag = 0;
@@ -56,11 +56,11 @@ int main( void )
 		{
 			mask_flag = 0;
 
-			if( state == STATE_SET_CLOCK_HOUR )
+			if( state == STATE_SET_CLOCK_MIN )
 			{
 				disp_mask = ~(disp_mask&0x03);
 			}
-			else if( state == STATE_SET_CLOCK_MIN )
+			else if( state == STATE_SET_CLOCK_SEC )
 			{
 				disp_mask = ~(disp_mask&0x0C);
 			}
@@ -110,13 +110,13 @@ int main( void )
 				case STATE_CLOCK:
 					if( button_state[0] == HOLD )
 					{
-						state = STATE_SET_CLOCK_HOUR;
+						state = STATE_SET_CLOCK_MIN;
 					}
 					break;
-				case STATE_SET_CLOCK_HOUR:
-					state = STATE_SET_CLOCK_MIN;
-					break;
 				case STATE_SET_CLOCK_MIN:
+					state = STATE_SET_CLOCK_SEC;
+					break;
+				case STATE_SET_CLOCK_SEC:
 					state = STATE_CLOCK;
 					break;
 				
@@ -129,11 +129,11 @@ int main( void )
 		{
 			switch( state )
 			{
-				case STATE_SET_CLOCK_HOUR:
+				case STATE_SET_CLOCK_MIN:
 					time[MIN]++;
 					if( time[MIN] == 60 ) time[MIN] = 0;
 					break;
-				case STATE_SET_CLOCK_MIN:
+				case STATE_SET_CLOCK_SEC:
 					time[SEC]++;
 					if( time[SEC] == 60 ) time[SEC] = 0;
 					break;
@@ -147,7 +147,7 @@ int main( void )
 		{
 			switch( state )
 			{
-				case STATE_SET_CLOCK_HOUR:
+				case STATE_SET_CLOCK_MIN:
 					if( btn_hold_update_flag == 100 )
 					{
 						btn_hold_update_flag = 0;
@@ -155,7 +155,7 @@ int main( void )
 						if( time[MIN] == 60 ) time[MIN] = 0;
 					}
 					break;
-				case STATE_SET_CLOCK_MIN:
+				case STATE_SET_CLOCK_SEC:
 					if( btn_hold_update_flag == 100 )
 					{
 						btn_hold_update_flag = 0;
@@ -172,11 +172,11 @@ int main( void )
 		{
 			switch( state )
 			{
-				case STATE_SET_CLOCK_HOUR:
+				case STATE_SET_CLOCK_MIN:
 					if( time[MIN] == 0 ) time[MIN] = 60;
 					time[MIN]--;
 					break;
-				case STATE_SET_CLOCK_MIN:
+				case STATE_SET_CLOCK_SEC:
 					if( time[SEC] == 0 ) time[SEC] = 60;
 					time[SEC]--;
 					break;
@@ -190,7 +190,7 @@ int main( void )
 		{
 			switch( state )
 			{
-				case STATE_SET_CLOCK_HOUR:
+				case STATE_SET_CLOCK_MIN:
 					if( btn_hold_update_flag == 100 )
 					{
 						btn_hold_update_flag = 0;
@@ -198,7 +198,7 @@ int main( void )
 						time[MIN]--;
 					}
 					break;
-				case STATE_SET_CLOCK_MIN:
+				case STATE_SET_CLOCK_SEC:
 					if( btn_hold_update_flag == 100 )
 					{
 						btn_hold_update_flag = 0;
